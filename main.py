@@ -40,7 +40,7 @@ class EchoCmdInvoker:
 
 def mkargparser():
     desc = """
-    Flake: a tool for managing a local music collection.
+    Flake: a tool for managing a local FLAC music collection.
     """
     p = argparse.ArgumentParser(
         prog='flake',
