@@ -16,12 +16,14 @@ def folder_art(filepath):
     return None
 
 
-def clear_art(filepath, cmd_invoker):
+def clear_art(filepath):
     cmdline = ('metaflac', '--remove', '--block-type=PICTURE', filepath)
-    return cmd_invoker.call(cmdline)
+    return cmdline
 
 
 def set_art(filepath, artpath, cmd_invoker):
+    cmds = [clear_art(filepath)]
+
     def spec():
         typ = 3
         mime = 'image/jpeg'
@@ -31,8 +33,8 @@ def set_art(filepath, artpath, cmd_invoker):
 
     img_option = f'--import-picture-from={spec()}'
     metaflac_cmdline = ('metaflac', img_option, filepath)
-    retcode = cmd_invoker.call(metaflac_cmdline)
-    return retcode
+    cmds.append(metaflac_cmdline)
+    return cmd_invoker.call(cmds)
 
 
 def updart(args):
@@ -43,5 +45,5 @@ def updart(args):
         for file in files:
             cover = folder_art(file)
             if cover:
-                clear_art(file, invoker)
                 set_art(file, cover, invoker)
+        invoker.wait()

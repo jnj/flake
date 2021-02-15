@@ -1,3 +1,4 @@
+import concurrent.futures as fut
 import logging
 import os
 import subprocess
@@ -14,30 +15,71 @@ class Logger:
         logging.info(s)
 
 
+class PoolInvoker:
+    def __init__(self, quiet, dryrun):
+        self._exec = fut.ThreadPoolExecutor()
+        self._quiet = quiet
+        self._dryrun = dryrun
+        self._futures = []
+
+    def wait(self):
+        for f in self._futures:
+            f.result()
+        self._futures.clear()
+
+    def call(self, commands):
+        inv = create_invoker(self._quiet, self._dryrun)
+
+        def task():
+            inv.call(commands)
+
+        f = self._exec.submit(task)
+        # not safe for concurrent uses of call()
+        self._futures.append(f)
+
+
 class CmdInvoker:
     def __init__(self, logger):
         self._logger = logger
 
-    def call(self, tup):
-        self._logger.inf(str(tup))
-        return subprocess.check_output(tup)
+    def wait(self):
+        pass
+
+    def call(self, commands):
+        for c in commands:
+            self._logger.info(str(c))
+            subprocess.check_output(c)
+        # todo check output
+        return 0
 
 
 class EchoCmdInvoker:
     def __init__(self, logger):
         self._logger = logger
 
-    def call(self, tup):
-        self._logger.info(str(tup))
+    def wait(self):
+        pass
+
+    def call(self, commands):
+        for c in commands:
+            self._logger.info(str(c))
         return 0
 
 
-def mkinvoker(args):
+def mkinvoker(args, concurrent=True):
     quiet = not args.verbose
-    logger = Logger(quiet)
-    if args.dry:
-        return EchoCmdInvoker(logger)
-    return CmdInvoker(logger)
+    dryrun = args.dry
+
+    if concurrent:
+        return PoolInvoker(quiet, dryrun)
+
+    return create_invoker(quiet, dryrun)
+
+
+def create_invoker(quiet, dryrun):
+    if dryrun:
+        return EchoCmdInvoker(Logger(quiet))
+    return CmdInvoker(Logger(quiet))
 
 
 def config_logging():

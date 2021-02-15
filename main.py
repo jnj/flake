@@ -49,4 +49,8 @@ if __name__ == '__main__':
     updart_parser.set_defaults(func=updart)
 
     parsedargs = p.parse_args(sys.argv[1:])
-    parsedargs.func(parsedargs)
+    if parsedargs.func:
+        parsedargs.func(parsedargs)
+    else:
+        p.print_usage()
+        sys.exit(1)
