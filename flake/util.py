@@ -122,11 +122,14 @@ def findflacs(root, maxdepth=-1):
 def findfiles(root, maxdepth=-1, current_depth=1, predicate=lambda f: True):
     if 0 <= maxdepth < current_depth:
         return
-    for f in os.listdir(root):
-        fullpath = os.path.join(root, f)
-        if os.path.isdir(fullpath):
-            newdepth = current_depth + 1
-            for j in findfiles(fullpath, maxdepth, newdepth, predicate):
-                yield j
-        elif os.path.isfile(fullpath) and predicate(fullpath):
-            yield fullpath
+    try:
+        for f in os.listdir(root):
+            fullpath = os.path.join(root, f)
+            if os.path.isdir(fullpath):
+                newdepth = current_depth + 1
+                for j in findfiles(fullpath, maxdepth, newdepth, predicate):
+                    yield j
+            elif os.path.isfile(fullpath) and predicate(fullpath):
+                yield fullpath
+    except PermissionError:
+        pass

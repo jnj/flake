@@ -4,6 +4,7 @@ import sys
 from flake.util import config_logging
 from flake.updart import updart
 from flake.transcode import transcode
+from flake.noart import noart
 
 
 def clone(args):
@@ -68,6 +69,14 @@ if __name__ == '__main__':
     )
 
     updart_parser.set_defaults(func=updart)
+
+    no_art_parser = subparsers.add_parser(
+        'noart',
+        help='find albums that have no artwork file'
+    )
+
+    no_art_parser.add_argument('root', help='root folder to begin searching')
+    no_art_parser.set_defaults(func=noart)
 
     transcode_parser = subparsers.add_parser(
         'transcode',

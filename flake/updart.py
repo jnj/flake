@@ -1,4 +1,3 @@
-import itertools
 import os
 
 from .util import mkinvoker, flac_file_list
