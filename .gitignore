@@ -1,4 +1,7 @@
 .pyo
 .pyc
-py3env
+py3venv
 .idea
+__pycache__
+*~
+
