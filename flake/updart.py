@@ -1,7 +1,7 @@
 import itertools
 import os
 
-from .util import mkinvoker, findflacs
+from .util import mkinvoker, flac_file_list
 
 ART_NAMES = [f'{base}.{ext}'
              for ext in ['jpg', 'jpeg', 'png']
@@ -38,8 +38,7 @@ def set_art(filepath, artpath, cmd_invoker):
 
 
 def updart(args):
-    gens = [findflacs(path, args.depth) for path in args.path]
-    files = list(itertools.chain(*gens))
+    files = flac_file_list(args.path, args.depth)
     if files:
         invoker = mkinvoker(args)
         for file in files:

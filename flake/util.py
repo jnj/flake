@@ -1,4 +1,5 @@
 import concurrent.futures as fut
+import itertools
 import logging
 import os
 import subprocess
@@ -21,6 +22,12 @@ class PoolInvoker:
         self._quiet = quiet
         self._dryrun = dryrun
         self._futures = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._exec.shutdown(True)
 
     def wait(self):
         for f in self._futures:
@@ -46,11 +53,12 @@ class CmdInvoker:
         pass
 
     def call(self, commands):
+        outputs = []
         for c in commands:
             self._logger.info(str(c))
-            subprocess.check_output(c)
+            outputs.append(subprocess.check_output(c))
         # todo check output
-        return 0
+        return outputs
 
 
 class EchoCmdInvoker:
@@ -63,7 +71,7 @@ class EchoCmdInvoker:
     def call(self, commands):
         for c in commands:
             self._logger.info(str(c))
-        return 0
+        return []
 
 
 def mkinvoker(args, concurrent=True):
@@ -93,6 +101,11 @@ def config_logging():
     for h in rootlogger.handlers:
         rootlogger.removeHandler(h)
     rootlogger.addHandler(stdouthandler)
+
+
+def flac_file_list(paths, maxdepth=-1):
+    gens = [findflacs(path, maxdepth) for path in paths]
+    return list(itertools.chain(*gens))
 
 
 def findflacs(root, maxdepth=-1):
