@@ -1,7 +1,6 @@
 import os
 import re
 import subprocess
-import sys
 from concurrent.futures import ThreadPoolExecutor
 
 from .util import CmdInvoker, Logger, flac_file_list
