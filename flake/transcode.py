@@ -1,9 +1,25 @@
 import os
 import re
 import subprocess
+import sys
 from concurrent.futures import ThreadPoolExecutor
 
 from .util import CmdInvoker, Logger, flac_file_list
+
+
+class OggEncodeCommand:
+    def __init__(self, sourcefile, destfile, invoker, logger):
+        self._src = sourcefile
+        self._dst = destfile
+        self._invoker = invoker
+        self._logger = logger
+
+    def __call__(self, *args, **kwargs):
+        self.run()
+
+    def run(self):
+        cmd = ['oggenc', '-Q', '-q', '8', '-o', self._dst, self._src]
+        self._invoker.call([cmd])
 
 
 class Mp3EncodeCommand:
@@ -67,19 +83,32 @@ def get_dest_file_path(root, srcfile, extension, lstrip):
     return fullpath
 
 
+def encoder(fmt, invoker, logger, srcfile, destfile):
+    if fmt == 'mp3':
+        return Mp3EncodeCommand(srcfile, destfile, invoker, logger)
+    else:
+        return OggEncodeCommand(srcfile, destfile, invoker, logger)
+
+
 def transcode(args):
     logger = Logger(not args.verbose)
     files = flac_file_list(args.path)
-
     with ThreadPoolExecutor() as pool:
         futures = []
 
         for src in files:
-            destfile = get_dest_file_path(args.dest, src, 'mp3', args.lstrip)
-            if args.format == 'mp3':
-                invoker = CmdInvoker(logger)
-                cmd = Mp3EncodeCommand(src, destfile, invoker, logger)
-                futures.append(pool.submit(cmd))
+            destfile = get_dest_file_path(
+                args.dest,
+                src,
+                args.format,
+                args.lstrip
+            )
+            if args.dry:
+                logger.info(f'{src} -> {destfile}')
+                continue
+            invoker = CmdInvoker(logger)
+            enc = encoder(args.format, invoker, logger, src, destfile)
+            futures.append(pool.submit(enc))
 
         for f in futures:
             f.result()
