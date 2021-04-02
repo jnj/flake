@@ -30,9 +30,11 @@ class PoolInvoker:
         self._exec.shutdown(True)
 
     def wait(self):
+        results = []
         for f in self._futures:
-            f.result()
+            results.append(f.result())
         self._futures.clear()
+        return results
 
     def call(self, commands):
         inv = create_invoker(self._quiet, self._dryrun)
@@ -48,17 +50,19 @@ class PoolInvoker:
 class CmdInvoker:
     def __init__(self, logger):
         self._logger = logger
+        self._outputs = []
 
     def wait(self):
-        pass
+        outputs = list(self._outputs)
+        self._outputs.clear()
+        return outputs
 
     def call(self, commands):
-        outputs = []
         for c in commands:
             self._logger.info(str(c))
-            outputs.append(subprocess.check_output(c))
+            self._outputs.append(subprocess.check_output(c))
         # todo check output
-        return outputs
+        return self._outputs
 
 
 class EchoCmdInvoker:

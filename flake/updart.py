@@ -7,7 +7,9 @@ ART_NAMES = [f'{base}.{ext}'
              for base in ['cover', 'folder']]
 
 
-def folder_art(filepath):
+def folder_art(filepath, filename):
+    if filename:
+        return os.path.join(os.path.dirname(filepath), filename)
     for name in ART_NAMES:
         f = os.path.join(os.path.dirname(filepath), name)
         if os.path.exists(f):
@@ -41,7 +43,7 @@ def updart(args):
     if files:
         invoker = mkinvoker(args)
         for file in files:
-            cover = folder_art(file)
+            cover = folder_art(file, args.filename)
             if cover:
                 set_art(file, cover, invoker)
         invoker.wait()

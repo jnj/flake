@@ -5,7 +5,7 @@ from flake.util import config_logging
 from flake.updart import updart
 from flake.transcode import transcode
 from flake.noart import noart
-
+from flake.renum import renum
 
 def clone(args):
     pass
@@ -41,6 +41,13 @@ if __name__ == '__main__':
         help='available subcommands'
     )
 
+    renumber_parser = subparsers.add_parser(
+        'renum',
+        help='renumber tracks'
+    )
+    renumber_parser.add_argument('dir', help='directory containing flac files')
+    renumber_parser.set_defaults(func=renum)
+
     clone_parser = subparsers.add_parser(
         'clone',
         help='make a copy of this path to another path'
@@ -68,6 +75,13 @@ if __name__ == '__main__':
         default=-1
     )
 
+    updart_parser.add_argument(
+        '-f',
+        '--filename',
+        help='file to use (found in same dir as flac files)',
+        type=str
+    )
+    
     updart_parser.set_defaults(func=updart)
 
     no_art_parser = subparsers.add_parser(
