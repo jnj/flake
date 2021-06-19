@@ -1,6 +1,12 @@
 from .util import mkinvoker
 
 
+def show_tag_command(files):
+    cmd = ['metaflac', '--export-tags-to=-']
+    cmd.extend(files)
+    return cmd
+
+
 def clear_tag_command(tagname, files):
     cmd = ['metaflac', f'--remove-tag={tagname}']
     cmd.extend(files)
@@ -17,10 +23,19 @@ def set_tag(args, argname, tagname, invoker):
     if hasattr(args, argname):
         argval = getattr(args, argname)
         if argval is not None:
-            clear = (clear_tag_command(tagname, args.file))
+            clear = clear_tag_command(tagname, args.file)
             invoker.call([clear])
             settag = add_tag_command(tagname, argval, args.file)
             invoker.call([settag])
+
+
+def show_tags(invoker, files):
+    output = invoker.call([show_tag_command(files)])
+    if isinstance(output, list):
+        for e in output:
+            d = e.decode().split('\n')
+            for part in d:
+                print(part)
 
 
 def tag(args):
@@ -29,5 +44,8 @@ def tag(args):
             ['aartist', 'ALBUMARTIST'],
             ['date', 'DATE'],
             ['genre', 'GENRE']]
-    for argname, tagname in tags:
-        set_tag(args, argname, tagname, invoker)
+    if not any(getattr(args, argname) is not None for (argname, _) in tags):
+        show_tags(invoker, args.file)
+    else:
+        for argname, tagname in tags:
+            set_tag(args, argname, tagname, invoker)
