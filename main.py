@@ -7,11 +7,7 @@ from flake.transcode import transcode
 from flake.noart import noart
 from flake.renum import renum
 from flake.tag import tag
-
-
-def clone(args):
-    pass
-
+from flake.clone import clone
 
 if __name__ == '__main__':
     config_logging()
