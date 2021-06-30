@@ -32,6 +32,13 @@ if __name__ == '__main__':
     tagp.add_argument('-aa', '--aartist', help='set album artist')
     tagp.add_argument('-g', '--genre', help='set genre')
     tagp.add_argument('-d', '--date', help='set date')
+    tagp.add_argument('-t', '--title', help='set title')
+    tagp.add_argument('-dn', '--discno', help='disc number')
+    tagp.add_argument('-tn', '--trackno', help='track number')
+    tagp.add_argument('-r', '--remove', help='remove the tags',
+                      action='store_const', const=True, default=False)
+    tagp.add_argument('-s', '--show', help='show tag values',
+                      action='store_const', const=True, default=False)
     tagp.add_argument('file', help='files', nargs='+')
     tagp.set_defaults(func=tag)
 

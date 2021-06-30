@@ -25,8 +25,9 @@ def set_tag(args, argname, tagname, invoker):
         if argval is not None:
             clear = clear_tag_command(tagname, args.file)
             invoker.call([clear])
-            settag = add_tag_command(tagname, argval, args.file)
-            invoker.call([settag])
+            if not args.remove:
+                settag = add_tag_command(tagname, argval, args.file)
+                invoker.call([settag])
 
 
 def show_tags(invoker, files):
@@ -38,13 +39,25 @@ def show_tags(invoker, files):
                 print(part)
 
 
+def only_display(args, tags):
+    if args.show:
+        return True
+    if not any(getattr(args, argname) is not None for (argname, _) in tags):
+        return True
+    return False
+
+
 def tag(args):
     invoker = mkinvoker(args, concurrent=False)
     tags = [['artist', 'ARTIST'],
             ['aartist', 'ALBUMARTIST'],
             ['date', 'DATE'],
-            ['genre', 'GENRE']]
-    if not any(getattr(args, argname) is not None for (argname, _) in tags):
+            ['genre', 'GENRE'],
+            ['discno', 'DISCNUMBER'],
+            ['trackno', 'TRACKNUMBER'],
+            ['title', 'TITLE']]
+
+    if only_display(args, tags):
         show_tags(invoker, args.file)
     else:
         for argname, tagname in tags:
