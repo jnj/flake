@@ -29,6 +29,7 @@ if __name__ == '__main__':
 
     tagp = subp.add_parser('tag', help='set tags')
     tagp.add_argument('-a', '--artist', help='set artist')
+    tagp.add_argument('-al', '--album', help='set album')
     tagp.add_argument('-aa', '--aartist', help='set album artist')
     tagp.add_argument('-g', '--genre', help='set genre')
     tagp.add_argument('-d', '--date', help='set date')

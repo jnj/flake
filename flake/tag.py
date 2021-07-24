@@ -55,7 +55,8 @@ def tag(args):
             ['genre', 'GENRE'],
             ['discno', 'DISCNUMBER'],
             ['trackno', 'TRACKNUMBER'],
-            ['title', 'TITLE']]
+            ['title', 'TITLE'],
+            ['album', 'ALBUM']]
 
     if only_display(args, tags):
         show_tags(invoker, args.file)
