@@ -13,6 +13,13 @@ def clear_tag_command(tagname, files):
     return cmd
 
 
+def remove_all_tags(args, invoker):
+    if args.removeall:
+        cmd = ['metaflac', '--remove-all-tags']
+        cmd.extend(args.file)
+        invoker.call([cmd])
+
+
 def add_tag_command(tagname, value, files):
     cmd = ['metaflac', f'--set-tag={tagname}={value}']
     cmd.extend(files)
@@ -61,5 +68,6 @@ def tag(args):
     if only_display(args, tags):
         show_tags(invoker, args.file)
     else:
+        remove_all_tags(args, invoker)
         for argname, tagname in tags:
             set_tag(args, argname, tagname, invoker)

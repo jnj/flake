@@ -38,10 +38,16 @@ if __name__ == '__main__':
     tagp.add_argument('-tn', '--trackno', help='track number')
     tagp.add_argument('-r', '--remove', help='remove the tags',
                       action='store_const', const=True, default=False)
+    tagp.add_argument('-ra', '--remove-all', dest='removeall',
+                      help='remove all tags before setting any',
+                      action='store_const', const=True, default=False)
     tagp.add_argument('-s', '--show', help='show tag values',
                       action='store_const', const=True, default=False)
     tagp.add_argument('file', help='files', nargs='+')
     tagp.set_defaults(func=tag)
+
+    # renamep = subp.add_parser('rename', help='rename files')
+    # renamep.add_argument('')
 
     renump = subp.add_parser('renum', help='renumber tracks')
     renump.add_argument('dir', help='directory containing flac files')
