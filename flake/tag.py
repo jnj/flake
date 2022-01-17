@@ -76,8 +76,8 @@ def clean_dir(dirpath):
     audio_by_file = {}
     all_artists = set()
     all_discs = set()
-    disctag = 'discnumber'
-    aatag = 'albumartist'
+    disctag = 'DISCNUMBER'
+    aatag = 'ALBUMARTIST'
 
     def tagval(au, tag):
         x = au.get(tag)
@@ -89,14 +89,14 @@ def clean_dir(dirpath):
         audio = FLAC(flacfile)
         audio_by_file[flacfile] = audio
 
-    required_tags = {'album', 'artist', 'tracknumber', 'title'}
+    required_tags = {'ALBUM', 'ARTIST', 'TRACKNUMBER', 'TITLE'}
     for flacfile, audio in audio_by_file.items():
         if not all(t in audio.keys() for t in required_tags):
             print(f'File {flacfile} is missing tags. Aborting.')
             return
 
     for flacfile, audio in audio_by_file.items():
-        for tagname in ['artist', 'album', 'title']:
+        for tagname in ['ARTIST', 'ALBUM', 'TITLE']:
             print(f'file is {flacfile}')
             print(f'cleaning tag {tagname}, value={tagval(audio, tagname)}')
             audio[tagname] = lcase_clean(tagval(audio, tagname), LCASE_WORDS)
@@ -124,8 +124,8 @@ def clean_dir(dirpath):
 
     # remove unwanted tags
     allowed_tags = {
-        'album', 'albumartist', 'date', 'genre', 'title',
-        'tracknumber', 'discnumber'
+        'ALBUM', 'ALBUMARTIST', 'DATE', 'GENRE', 'TITLE',
+        'TRACKNUMBER', 'DISCNUMBER'
     }
 
     for audio in audio_by_file.values():
@@ -140,8 +140,8 @@ def clean_dir(dirpath):
     for flacfile, audio in audio_by_file.items():
         filebase = os.path.basename(flacfile)
         filedir = os.path.dirname(flacfile)
-        trackno = tagval(audio, 'tracknumber')
-        title = tagval(audio, 'title')
+        trackno = tagval(audio, 'TRACKNUMBER')
+        title = tagval(audio, 'TITLE')
         new_file_name = fs_sanitize(f'{trackno}-{title}.flac')
 
         if multidisc:
