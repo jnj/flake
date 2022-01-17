@@ -71,6 +71,17 @@ def clean_tags(invoker, files):
             clean_dir(file)
 
 
+def norm_mutagen_keys(audio_obj):
+    return [k.upper() for k in audio_obj.keys()]
+
+
+def mutagen_get_tag_value(audio_obj, tagname):
+    v = audio_obj.get(tagname)
+    if v is None:
+        return v
+    return v[0]
+
+
 def clean_dir(dirpath):
     flacs = glob.glob(os.path.join(dirpath, '*.flac'))
     audio_by_file = {}
@@ -79,40 +90,35 @@ def clean_dir(dirpath):
     disctag = 'DISCNUMBER'
     aatag = 'ALBUMARTIST'
 
-    def tagval(au, tag):
-        x = au.get(tag.lower())
-        if x is None:
-            return x
-        return x[0]
-
     for flacfile in flacs:
         audio = FLAC(flacfile)
         audio_by_file[flacfile] = audio
 
     required_tags = {'ALBUM', 'ARTIST', 'TRACKNUMBER', 'TITLE'}
     for flacfile, audio in audio_by_file.items():
-        if not all(t.lower() in audio.keys() for t in required_tags):
-            print(f'File {flacfile} is missing tags. Aborting. (Keys={audio.keys()})')
+        keys = norm_mutagen_keys(audio)
+        missing = [t for t in required_tags if t not in keys]
+        if missing:
+            print(
+                f'File {flacfile} is missing tags. Aborting. (Keys={missing})')
             return
 
     for flacfile, audio in audio_by_file.items():
         for tagname in ['ARTIST', 'ALBUM', 'TITLE']:
-            print(f'file is {flacfile}')
-            print(f'cleaning tag {tagname}, value={tagval(audio, tagname)}')
-            audio[tagname] = lcase_clean(tagval(audio, tagname), LCASE_WORDS)
-            print(f'Now tag value is {audio[tagname]}')
+            tval = mutagen_get_tag_value(audio, tagname)
+            audio[tagname] = lcase_clean(tval, LCASE_WORDS)
 
     for flacfile, audio in audio_by_file.items():
-        all_artists.add(tagval(audio, 'ARTIST'))
-        if disctag in audio.keys():
-            all_discs.add(tagval(audio, disctag))
+        all_artists.add(mutagen_get_tag_value(audio, 'ARTIST'))
+        if disctag in norm_mutagen_keys(audio):
+            all_discs.add(mutagen_get_tag_value(audio, disctag))
 
     comp = len(all_artists) > 1
 
     # set albumartist to 'Various Artists' if compilation.
     # otherwise, remove it.
     for audio in audio_by_file.values():
-        if aatag in audio.keys():
+        if aatag in norm_mutagen_keys(audio):
             del audio[aatag]
         if comp:
             audio[aatag] = 'Various Artists'
@@ -120,21 +126,21 @@ def clean_dir(dirpath):
     # remove discnumber tag if not multidisc.
     multidisc = len(all_discs) > 1
     for audio in audio_by_file.values():
-        if not multidisc and disctag in audio.keys():
+        if not multidisc and disctag in norm_mutagen_keys(audio):
             del audio[disctag]
 
     # remove unwanted tags
     allowed_tags = {
         'ALBUM', 'ALBUMARTIST', 'DATE', 'GENRE', 'TITLE',
-        'TRACKNUMBER', 'DISCNUMBER'
+        'TRACKNUMBER', 'DISCNUMBER', 'ARTIST'
     }
 
     for audio in audio_by_file.values():
-        for t in audio.keys():
-            if t.upper() not in allowed_tags:
+        for t in norm_mutagen_keys(audio):
+            if t not in allowed_tags:
                 del audio[t]
             else:
-                audio[t.upper()] = audio[t]
+                audio[t] = audio[t]
 
     # save before renaming.
     for audio in audio_by_file.values():
@@ -144,15 +150,18 @@ def clean_dir(dirpath):
         audio = FLAC(flacfile)
         filebase = os.path.basename(flacfile)
         filedir = os.path.dirname(flacfile)
-        trackno = tagval(audio, 'TRACKNUMBER')
-        title = tagval(audio, 'TITLE')
+        trackno = mutagen_get_tag_value(audio, 'TRACKNUMBER')
+        title = mutagen_get_tag_value(audio, 'TITLE')
         if trackno is None or title is None:
             print(f'Aborting. Something is wrong. Tags={audio.tags}')
             return
+        n = int(trackno)
+        trackno = f'{n:02}'.strip()
+        title = title.strip()
         new_file_name = fs_sanitize(f'{trackno}-{title}.flac')
 
         if multidisc:
-            discnum = tagval(audio, disctag)
+            discnum = mutagen_get_tag_value(audio, disctag)
             new_file_name = fs_sanitize(f'{discnum}-{trackno}-{title}.flac')
 
         fullpath = os.path.join(filedir, new_file_name)
