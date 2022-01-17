@@ -80,7 +80,7 @@ def clean_dir(dirpath):
     aatag = 'ALBUMARTIST'
 
     def tagval(au, tag):
-        x = au.get(tag)
+        x = au.get(tag.lower())
         if x is None:
             return x
         return x[0]
@@ -91,8 +91,8 @@ def clean_dir(dirpath):
 
     required_tags = {'ALBUM', 'ARTIST', 'TRACKNUMBER', 'TITLE'}
     for flacfile, audio in audio_by_file.items():
-        if not all(t in audio.keys() for t in required_tags):
-            print(f'File {flacfile} is missing tags. Aborting.')
+        if not all(t.lower() in audio.keys() for t in required_tags):
+            print(f'File {flacfile} is missing tags. Aborting. (Keys={audio.keys()})')
             return
 
     for flacfile, audio in audio_by_file.items():
@@ -100,9 +100,10 @@ def clean_dir(dirpath):
             print(f'file is {flacfile}')
             print(f'cleaning tag {tagname}, value={tagval(audio, tagname)}')
             audio[tagname] = lcase_clean(tagval(audio, tagname), LCASE_WORDS)
+            print(f'Now tag value is {audio[tagname]}')
 
     for flacfile, audio in audio_by_file.items():
-        all_artists.add(tagval(audio, 'artist'))
+        all_artists.add(tagval(audio, 'ARTIST'))
         if disctag in audio.keys():
             all_discs.add(tagval(audio, disctag))
 
@@ -130,18 +131,24 @@ def clean_dir(dirpath):
 
     for audio in audio_by_file.values():
         for t in audio.keys():
-            if t not in allowed_tags:
+            if t.upper() not in allowed_tags:
                 del audio[t]
+            else:
+                audio[t.upper()] = audio[t]
 
     # save before renaming.
     for audio in audio_by_file.values():
-        audio.save()
+        audio.save(deleteid3=True)
 
-    for flacfile, audio in audio_by_file.items():
+    for flacfile, _ in audio_by_file.items():
+        audio = FLAC(flacfile)
         filebase = os.path.basename(flacfile)
         filedir = os.path.dirname(flacfile)
         trackno = tagval(audio, 'TRACKNUMBER')
         title = tagval(audio, 'TITLE')
+        if trackno is None or title is None:
+            print(f'Aborting. Something is wrong. Tags={audio.tags}')
+            return
         new_file_name = fs_sanitize(f'{trackno}-{title}.flac')
 
         if multidisc:
@@ -149,6 +156,7 @@ def clean_dir(dirpath):
             new_file_name = fs_sanitize(f'{discnum}-{trackno}-{title}.flac')
 
         fullpath = os.path.join(filedir, new_file_name)
+        print(f"Renaming: {flacfile} -> {fullpath}")
         shutil.move(flacfile, fullpath)
 
 
