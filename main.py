@@ -28,6 +28,8 @@ if __name__ == '__main__':
         help='available subcommands')
 
     tagp = subp.add_parser('tag', help='set tags')
+    tagp.add_argument('-c', '--clean', help='clean tags (files arg should be dir)',
+                      action='store_const', const=True, default=False)
     tagp.add_argument('-a', '--artist', help='set artist')
     tagp.add_argument('-al', '--album', help='set album')
     tagp.add_argument('-aa', '--aartist', help='set album artist')
@@ -45,9 +47,6 @@ if __name__ == '__main__':
                       action='store_const', const=True, default=False)
     tagp.add_argument('file', help='files', nargs='+')
     tagp.set_defaults(func=tag)
-
-    # renamep = subp.add_parser('rename', help='rename files')
-    # renamep.add_argument('')
 
     renump = subp.add_parser('renum', help='renumber tracks')
     renump.add_argument('dir', help='directory containing flac files')
