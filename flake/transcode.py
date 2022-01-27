@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 
@@ -71,14 +72,19 @@ class Mp3EncodeCommand:
 
 
 def get_dest_file_path(root, srcfile, extension, lstrip):
-    parts = os.path.dirname(srcfile).split(os.path.sep)
+    srcdir = os.path.dirname(srcfile)
+    parts = srcdir.split(os.path.sep)
     prefix = [p for p in parts if p][lstrip:]
     destdir = os.path.join(root, os.path.join(*prefix))
     base, _ = os.path.splitext(os.path.basename(srcfile))
     newfile = f'{base}.{extension}'
     fullpath = os.path.join(destdir, newfile)
+    srccoverpath = os.path.join(srcdir, 'cover.jpg')
+    dstcoverpath = os.path.join(destdir, 'cover.jpg')
     if not os.path.exists(destdir):
         os.makedirs(destdir)
+    if not os.path.exists(dstcoverpath) and os.path.exists(srccoverpath):
+        shutil.copyfile(srccoverpath, dstcoverpath)
     return fullpath
 
 
